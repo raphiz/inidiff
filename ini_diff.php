@@ -1,14 +1,13 @@
 <?php
 namespace inidiff;
 
-$locale_dir = "../locale/";
+$locale_dir = "examples/";
 $locale_files = glob("$locale_dir*.ini");
 
 $locales = array();
 foreach ($locale_files as $locale_file){
   $locale_name = substr($locale_file, strlen($locale_dir), -4);
-
-  $locales[$locale_name] = parse_ini_file($locale_dir . $locale_file, true);
+  $locales[$locale_name] = parse_ini_file($locale_file, true);
 }
 
 $all_keys = new \stdClass();
@@ -35,26 +34,30 @@ foreach ($locales as $name =>$locale) {
     }
     $locale_keys[$name] = $current;
   }
-
   # Remove duplicates
   $all_keys->root = array_unique($all_keys->root, SORT_REGULAR);
   $all_keys->sections = array_unique($all_keys->sections, SORT_REGULAR);
+
 }
 
 function print_diff($all, $current, $name){
+  if (!is_array($current)) {
+    $current =array();
+  }
   $diff = array_diff($all, $current);
   if(sizeof($diff) == 0){
     $html = '<p class="ok">No keys missing in "' . $name . '"!</p>';
     return array($html, true);
   }else{
-    $html = '<p class="warn">Missing keys in "' . $name . '":</p><code>';
+    $html = '<p class="warn">Missing keys in "' . $name . '":</p><ul>';
     foreach($diff as $key){
-      $html .= "$key=";
+      $html .= "<li>$key</li>";
     }
-    $html .= "</code>";
+    $html .= "</ul>";
     return array($html, false);
   }
 }
+
 $output = "";
 foreach ($locales as $name =>$locale) {
   $ok = true;
@@ -63,8 +66,9 @@ foreach ($locales as $name =>$locale) {
   $html .= $res[0];
   if(!$res[1]) {$ok = false;}
 
-  foreach($locale_keys[$name]->sections as $key=>$value){
-    $res = print_diff($all_keys->sections[$key], $value, $key);
+  foreach($all_keys->sections as $key => $all){
+    
+    $res = print_diff($all, $locale_keys[$name]->sections[$key], $key);
     $html .= $res[0];
     if(!$res[1]) {$ok = false;}
   }
@@ -76,7 +80,7 @@ foreach ($locales as $name =>$locale) {
   $output .= $html;
 }
 
-$template = file_get_contents("translation_diff.tmpl");
+$template = file_get_contents("ini_diff.html");
 echo str_replace('{{CONTENT}}', $output, $template);
 
 ?>
