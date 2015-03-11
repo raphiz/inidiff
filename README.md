@@ -3,8 +3,8 @@ This project was a quick-and-dirty experiment to simplify the comparison of two 
 
 I created this project because localization for a project I worked on was based on INI files. This tool helped me to ensure that all senteces were translated.
 
-
 Here is an example result:
+
 ![Result](examples/result.png)
 
 License: MIT
